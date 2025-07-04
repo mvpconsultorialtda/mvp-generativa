@@ -69,12 +69,11 @@ async def create_text(request: TextGenerationRequest):
         except TypeError as e:
             raise HTTPException(status_code=422, detail=f"Erro nos argumentos para o template: {e}")
     try:
-        # Gerenciamento de chave de texto para Mistral
         key_manager = KeyManager('MISTRALAI_MISTRAL_7B_INSTRUCT_FREE_KEY')
         key_tuple = key_manager.get_next_key()
         if not key_tuple:
             raise HTTPException(status_code=503, detail="Nenhuma chave de texto disponível no momento.")
-        key_name, key_value = key_tuple
+        key_name, key_value, _ = key_tuple  # Corrigido para 3 valores
         modelo_a_usar = request.modelo or generation_engines.MODELO_TEXTO_PADRAO
         texto_gerado = generation_engines.gerar_texto(prompt=final_prompt, modelo=modelo_a_usar, temperatura=request.temperatura, api_key=key_value)
         return {"generated_text": texto_gerado, "key_used": key_name}
@@ -90,12 +89,11 @@ async def create_text(request: TextGenerationRequest):
 @app.post("/generate/image", summary="Gerar Imagem", description="Gera imagens com base em uma descrição textual.")
 async def create_image(request: ImageGenerationRequest):
     try:
-        # Gerenciamento de chave de imagem para Bing
         key_manager = KeyManager('BING_AUTH_COOKIE')
         key_tuple = key_manager.get_next_key()
         if not key_tuple:
             raise HTTPException(status_code=503, detail="Nenhuma chave de imagem disponível no momento.")
-        cookie1_name, cookie1, cookie2_name, cookie2 = key_tuple
+        cookie1_name, cookie1, cookie2_name, cookie2, _ = key_tuple  # Corrigido para 5 valores
         urls_imagens = generation_engines.gerar_imagem(prompt=request.prompt, bing_cookie=cookie1, bing_cookie_srch=cookie2)
         if not urls_imagens:
              raise HTTPException(status_code=404, detail="Nenhuma imagem foi gerada. O prompt pode ter sido bloqueado ou houve um problema no serviço de origem.")
