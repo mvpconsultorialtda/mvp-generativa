@@ -2,6 +2,44 @@
 
 Esta API permite gerar textos e imagens a partir de prompts diretos ou templates prontos. Veja abaixo como realizar requisições para cada funcionalidade.
 
+---
+
+## Utilizando a API em Produção (Vercel, Render, etc.)
+
+Ao fazer o deploy desta API em plataformas como Vercel, Render ou outros serviços de nuvem, você torna possível consumir os endpoints de geração de texto e imagem de qualquer lugar, seja de aplicações web, mobile, automações, chatbots ou outros sistemas.
+
+### Vantagens de ter a API deployada:
+- **Acesso global:** Permite que qualquer sistema autorizado envie requisições HTTP para gerar textos ou imagens sob demanda.
+- **Integração fácil:** Pode ser consumida por frontends (React, Vue, Angular), apps mobile (Flutter, React Native), scripts Python, automações no Zapier, Make, etc.
+- **Escalabilidade:** O serviço pode ser escalado conforme o volume de requisições, aproveitando a infraestrutura da nuvem.
+- **Centralização:** Todas as regras de rotação de chaves, templates e controle de uso ficam centralizadas, facilitando manutenção e segurança.
+
+### Exemplos de uso após deploy
+
+Se sua API está publicada em `https://minha-api.vercel.app` ou `https://minha-api.onrender.com`, basta trocar a URL base nos exemplos:
+
+```bash
+curl -X POST 'https://minha-api.vercel.app/generate/text' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "prompt": "Explique o conceito de computação quântica para um leigo."
+  }'
+```
+
+Ou para imagens:
+
+```bash
+curl -X POST 'https://minha-api.onrender.com/generate/image' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "prompt": "um robô vintage lendo um livro em uma biblioteca empoeirada, pintura a óleo digital"
+  }'
+```
+
+Você pode consumir a API de qualquer ambiente que consiga fazer requisições HTTP, inclusive navegadores, servidores, automações e integrações de terceiros.
+
+---
+
 ## 1. Estrutura do arquivo .env
 
 No arquivo `.env` na raiz do projeto, adicione suas chaves de API seguindo o padrão abaixo:
@@ -43,7 +81,7 @@ Você pode gerar texto de duas formas:
 ### a) Usando um prompt direto
 
 ```bash
-curl -X POST 'http://127.0.0.1:8000/generate/text' \
+curl -X POST 'https://minha-api.vercel.app/generate/text' \
   -H 'Content-Type: application/json' \
   -d '{
     "prompt": "Explique o conceito de computação quântica para um leigo."
@@ -55,13 +93,13 @@ curl -X POST 'http://127.0.0.1:8000/generate/text' \
 Primeiro, consulte os templates disponíveis:
 
 ```bash
-curl -X GET 'http://127.0.0.1:8000/templates/text'
+curl -X GET 'https://minha-api.vercel.app/templates/text'
 ```
 
 Depois, envie uma requisição usando o nome do template e os argumentos necessários:
 
 ```bash
-curl -X POST 'http://127.0.0.1:8000/generate/text' \
+curl -X POST 'https://minha-api.vercel.app/generate/text' \
   -H 'Content-Type: application/json' \
   -d '{
     "template_name": "summarize",
@@ -78,7 +116,7 @@ curl -X POST 'http://127.0.0.1:8000/generate/text' \
 Envie um prompt descritivo para gerar uma imagem:
 
 ```bash
-curl -X POST 'http://127.0.0.1:8000/generate/image' \
+curl -X POST 'https://minha-api.vercel.app/generate/image' \
   -H 'Content-Type: application/json' \
   -d '{
     "prompt": "um robô vintage lendo um livro em uma biblioteca empoeirada, pintura a óleo digital"
