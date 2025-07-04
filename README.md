@@ -1,6 +1,6 @@
 # Como Usar a API de Geração de Texto e Imagem
 
-Esta API permite gerar textos e imagens a partir de prompts diretos ou templates prontos. Veja abaixo como realizar requisições para cada funcionalidade.
+Esta API permite gerar textos e imagens a partir de prompts diretos ou templates prontos, utilizando provedores reais como OpenRouter/Mistral para texto e Bing Image Creator para imagens. Veja abaixo como estruturar o .env e realizar requisições.
 
 ---
 
@@ -45,20 +45,22 @@ Você pode consumir a API de qualquer ambiente que consiga fazer requisições H
 No arquivo `.env` na raiz do projeto, adicione suas chaves de API seguindo o padrão abaixo:
 
 ```
-# Chaves para geração de texto
-TEXTO_KEY_1=chave_texto_1
-TEXTO_KEY_2=chave_texto_2
-...
-TEXTO_KEY_50=chave_texto_50
+# Chaves para geração de texto (OpenRouter/Mistral)
+MISTRALAI_MISTRAL_7B_INSTRUCT_FREE_KEY_1=sua_chave_1
+MISTRALAI_MISTRAL_7B_INSTRUCT_FREE_KEY_2=sua_chave_2
+# ...até N
 
-# Chaves para geração de imagem
-IMAGEM_KEY_1=chave_imagem_1
-IMAGEM_KEY_2=chave_imagem_2
-...
-IMAGEM_KEY_50=chave_imagem_50
+# Chaves para geração de imagem (Bing Image Creator)
+BING_AUTH_COOKIE_1=valor_cookie1
+BING_AUTH_COOKIE_SRCHHPGUSR_1=valor_cookie_srch1
+BING_AUTH_COOKIE_2=valor_cookie2
+BING_AUTH_COOKIE_SRCHHPGUSR_2=valor_cookie_srch2
+# ...até N
 ```
 
-Cada chave deve ser fornecida pelo serviço de IA que você utiliza (ex: OpenAI, Azure, etc). O sistema faz a rotação automática dessas chaves.
+- Para texto, cada chave corresponde a uma conta/modelo do OpenRouter/Mistral.
+- Para imagem, cada par de cookies corresponde a uma conta Bing válida.
+- O sistema faz a rotação automática dessas chaves e bloqueia temporariamente as que apresentarem erro.
 
 ---
 
@@ -131,3 +133,4 @@ A resposta trará uma lista de URLs de imagens geradas.
 - Consulte `/docs` para exemplos interativos e documentação detalhada dos parâmetros.
 - Para usar templates, sempre confira os argumentos obrigatórios usando o endpoint `/templates/text`.
 - Os endpoints retornam mensagens de erro detalhadas caso algum parâmetro esteja incorreto ou ausente.
+- O sistema faz rotação automática das chaves e bloqueio temporário das que apresentarem erro, garantindo robustez e alta disponibilidade.
