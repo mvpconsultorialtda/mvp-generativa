@@ -4,6 +4,7 @@ from typing import Optional, Dict, Any
 
 import generation_engines
 import prompt_templates
+from key_manager import KeyManager
 
 # --- Modelos de Dados Pydantic ---
 
@@ -68,24 +69,48 @@ async def create_text(request: TextGenerationRequest):
         except TypeError as e:
             raise HTTPException(status_code=422, detail=f"Erro nos argumentos para o template: {e}")
     try:
+        # Gerenciamento de chave de texto
+        key_manager = KeyManager('TEXT_KEY')
+        key_tuple = key_manager.get_next_key()
+        if not key_tuple:
+            raise HTTPException(status_code=503, detail="Nenhuma chave de texto disponível no momento.")
+        key_name, key_value = key_tuple
         modelo_a_usar = request.modelo or generation_engines.MODELO_TEXTO_PADRAO
+        # Aqui você passaria key_value para a função de geração real
         texto_gerado = generation_engines.gerar_texto(prompt=final_prompt, modelo=modelo_a_usar, temperatura=request.temperatura)
-        return {"generated_text": texto_gerado}
+        return {"generated_text": texto_gerado, "key_used": key_name}
     except ConnectionError as e:
+        if 'key_name' in locals():
+            key_manager.block_key(key_name)
         raise HTTPException(status_code=503, detail=f"Serviço Indisponível: {e}")
     except Exception as e:
+        if 'key_name' in locals():
+            key_manager.block_key(key_name)
         raise HTTPException(status_code=500, detail=f"Erro Interno do Servidor: {e}")
 
 @app.post("/generate/image", summary="Gerar Imagem", description="Gera imagens com base em uma descrição textual.")
 async def create_image(request: ImageGenerationRequest):
     try:
+        # Gerenciamento de chave de imagem
+        key_manager = KeyManager('IMAGE_KEY')
+        key_tuple = key_manager.get_next_key()
+        if not key_tuple:
+            raise HTTPException(status_code=503, detail="Nenhuma chave de imagem disponível no momento.")
+        key_name, key_value = key_tuple
+        # Aqui você passaria key_value para a função de geração real
         urls_imagens = generation_engines.gerar_imagem(prompt=request.prompt)
         if not urls_imagens:
              raise HTTPException(status_code=404, detail="Nenhuma imagem foi gerada. O prompt pode ter sido bloqueado ou houve um problema no serviço de origem.")
-        return {"image_urls": urls_imagens}
+        return {"image_urls": urls_imagens, "key_used": key_name}
     except ConnectionError as e:
+        if 'key_name' in locals():
+            key_manager.block_key(key_name)
         raise HTTPException(status_code=503, detail=f"Serviço Indisponível: {e}")
     except PermissionError as e:
+        if 'key_name' in locals():
+            key_manager.block_key(key_name)
         raise HTTPException(status_code=401, detail=f"Não Autorizado: {e}")
     except Exception as e:
+        if 'key_name' in locals():
+            key_manager.block_key(key_name)
         raise HTTPException(status_code=500, detail=f"Erro Interno do Servidor: {e}")
