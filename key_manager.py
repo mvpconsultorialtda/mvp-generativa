@@ -20,7 +20,8 @@ class KeyManager:
         for i in range(1, self.total_keys + 1):
             env_key = f'{self.key_type}_{i}'
             value = os.getenv(env_key, '')
-            if value:
+            # Redundância: só adiciona se existir e não for vazio
+            if value is not None and value.strip() != '':
                 keys.append((env_key, value))
         return keys
 
@@ -52,13 +53,20 @@ class KeyManager:
     def get_next_key(self) -> Optional[Tuple[str, str]]:
         with lock:
             self._clean_waiting_list()
-            available_keys = [k for k in self.keys if k[0] not in self.waiting_list]
+            # Redundância: filtra apenas chaves realmente válidas
+            available_keys = [k for k in self.keys if k[0] not in self.waiting_list and k[1] and k[1].strip() != '']
             if not available_keys:
-                # Todas as chaves estão na waiting list, resetar
-                self._log('Todas as chaves bloqueadas. Reiniciando waiting list.')
+                # Todas as chaves estão na waiting list ou não existem válidas, resetar
+                self._log('Todas as chaves bloqueadas ou inválidas. Reiniciando waiting list.')
                 self.waiting_list = {}
                 self._save_waiting_list()
-                return self.keys[0] if self.keys else None
+                # Recarrega as chaves do .env após reset
+                self.keys = self._load_keys()
+                available_keys = [k for k in self.keys if k[1] and k[1].strip() != '']
+                if not available_keys:
+                    # Nenhuma chave válida disponível
+                    return None
+                return available_keys[0]
             return available_keys[0]
 
     def block_key(self, key_name: str):
