@@ -1,5 +1,11 @@
 # Como Usar a API de Geração de Texto e Imagem
 
+> **Importante:** Antes de rodar localmente ou fazer deploy (Vercel, Render, etc.), instale as dependências do arquivo `requirements.txt`:
+>
+> ```bash
+> pip install -r requirements.txt
+> ```
+
 Esta API permite gerar textos e imagens a partir de prompts diretos ou templates prontos, utilizando provedores reais como OpenRouter/Mistral para texto e Bing Image Creator para imagens. Veja abaixo como estruturar o .env e realizar requisições.
 
 ---
