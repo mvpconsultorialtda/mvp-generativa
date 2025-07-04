@@ -78,6 +78,19 @@ Execute o comando abaixo no terminal para iniciar a API:
 uvicorn api:app --reload
 ```
 
+> **Importante para deploy no Render:**
+> O Render define a porta de execução via variável de ambiente `PORT`. Para garantir que o servidor rode corretamente, inicie o Uvicorn assim:
+>
+> ```bash
+> uvicorn api:app --host 0.0.0.0 --port $PORT
+> ```
+>
+> Ou configure o comando de start no Render para:
+>
+>     uvicorn api:app --host 0.0.0.0 --port $PORT
+>
+> Isso garante que o serviço escute na porta correta e aceite conexões externas.
+
 Acesse a documentação interativa em: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
 
 ---
