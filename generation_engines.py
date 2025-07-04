@@ -1,20 +1,24 @@
 # generation_engines.py
 # Motores de geração de texto e imagem (exemplo genérico)
 import os
+from openai import OpenAI
+from BingImageCreator import ImageGen
 
-# Exemplo de configuração de modelo padrão (ajuste conforme necessário)
-MODELO_TEXTO_PADRAO = os.getenv("MODELO_TEXTO_PADRAO", "openai/gpt-3.5-turbo")
+# --- TEXTO: OpenRouter/Mistral ---
+MODELO_TEXTO_PADRAO = os.getenv("MODELO_TEXTO_PADRAO", "mistralai/mistral-7b-instruct:free")
 
-# Função genérica para geração de texto
+def gerar_texto(prompt: str, modelo: str, temperatura: float, api_key: str) -> str:
+    client = OpenAI(base_url="https://openrouter.ai/api/v1", api_key=api_key)
+    response = client.chat.completions.create(
+        model=modelo,
+        messages=[{"role": "user", "content": prompt}],
+        temperature=temperatura,
+        max_tokens=500
+    )
+    return response.choices[0].message.content.strip()
 
-def gerar_texto(prompt: str, modelo: str = None, temperatura: float = 0.7) -> str:
-    # Aqui você integraria com o modelo real (OpenAI, Azure, HuggingFace, etc.)
-    # Exemplo fictício:
-    return f"[Texto gerado pelo modelo '{modelo or MODELO_TEXTO_PADRAO}']\nPrompt: {prompt}\nTemperatura: {temperatura}"
-
-# Função genérica para geração de imagem
-
-def gerar_imagem(prompt: str) -> list:
-    # Aqui você integraria com o serviço real de geração de imagens (DALL-E, Stable Diffusion, etc.)
-    # Exemplo fictício:
-    return [f"https://fakeimg.pl/600x400/?text={prompt.replace(' ', '+')}"]
+# --- IMAGEM: Bing Image Creator ---
+def gerar_imagem(prompt: str, bing_cookie: str, bing_cookie_srch: str) -> list:
+    image_gen = ImageGen(auth_cookie=bing_cookie, auth_cookie_SRCHHPGUSR=bing_cookie_srch, quiet=True)
+    links = image_gen.get_images(prompt)
+    return links if links else []
