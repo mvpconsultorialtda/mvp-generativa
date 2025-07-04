@@ -3,6 +3,7 @@ import json
 from datetime import datetime, timedelta
 from typing import List, Tuple, Optional, Dict, Any
 from threading import Lock
+import random
 
 WAITING_LIST_FILE = 'waiting_list.json'
 LOG_FILE = 'key_rotation.log'
@@ -23,14 +24,14 @@ class KeyManager:
                 cookie1 = os.getenv(f'BING_AUTH_COOKIE_{i}', '').strip()
                 cookie2 = os.getenv(f'BING_AUTH_COOKIE_SRCHHPGUSR_{i}', '').strip()
                 if cookie1 and cookie2:
-                    keys.append((f'BING_AUTH_COOKIE_{i}', cookie1, f'BING_AUTH_COOKIE_SRCHHPGUSR_{i}', cookie2))
+                    keys.append((f'BING_AUTH_COOKIE_{i}', cookie1, f'BING_AUTH_COOKIE_SRCHHPGUSR_{i}', cookie2, i))
         else:
             # Para texto, rotaciona chaves individuais
             for i in range(1, self.total_keys + 1):
                 env_key = f'{self.key_type}_{i}'
                 value = os.getenv(env_key, '').strip()
                 if value:
-                    keys.append((env_key, value))
+                    keys.append((env_key, value, i))
         return keys
 
     def _load_waiting_list(self) -> dict:
@@ -62,22 +63,29 @@ class KeyManager:
         with lock:
             self._clean_waiting_list()
             if self.key_type.startswith('BING_AUTH_COOKIE'):
+                # Sorteia um par de cookies disponível (índice igual)
                 available_keys = [k for k in self.keys if k[0] not in self.waiting_list and k[2] not in self.waiting_list]
-            else:
-                available_keys = [k for k in self.keys if k[0] not in self.waiting_list]
-            if not available_keys:
-                self._log('Todas as chaves bloqueadas ou inválidas. Reiniciando waiting list.')
-                self.waiting_list = {}
-                self._save_waiting_list()
-                self.keys = self._load_keys()
-                if self.key_type.startswith('BING_AUTH_COOKIE'):
-                    available_keys = [k for k in self.keys if k[0] not in self.waiting_list and k[2] not in self.waiting_list]
-                else:
-                    available_keys = [k for k in self.keys if k[0] not in self.waiting_list]
                 if not available_keys:
-                    return None
-                return available_keys[0]
-            return available_keys[0]
+                    self._log('Todas as chaves de imagem bloqueadas ou inválidas. Reiniciando waiting list.')
+                    self.waiting_list = {}
+                    self._save_waiting_list()
+                    self.keys = self._load_keys()
+                    available_keys = [k for k in self.keys if k[0] not in self.waiting_list and k[2] not in self.waiting_list]
+                    if not available_keys:
+                        return None
+                return random.choice(available_keys)
+            else:
+                # Sorteia qualquer chave de texto disponível
+                available_keys = [k for k in self.keys if k[0] not in self.waiting_list]
+                if not available_keys:
+                    self._log('Todas as chaves de texto bloqueadas ou inválidas. Reiniciando waiting list.')
+                    self.waiting_list = {}
+                    self._save_waiting_list()
+                    self.keys = self._load_keys()
+                    available_keys = [k for k in self.keys if k[0] not in self.waiting_list]
+                    if not available_keys:
+                        return None
+                return random.choice(available_keys)
 
     def block_key(self, key_name: str):
         with lock:
@@ -86,8 +94,8 @@ class KeyManager:
 
 # Exemplo de uso para texto:
 # key_manager = KeyManager('MISTRALAI_MISTRAL_7B_INSTRUCT_FREE_KEY')
-# key_name, key_value = key_manager.get_next_key()
+# key_name, key_value, idx = key_manager.get_next_key()
 #
 # Exemplo de uso para imagem (Bing):
 # key_manager = KeyManager('BING_AUTH_COOKIE')
-# cookie1_name, cookie1, cookie2_name, cookie2 = key_manager.get_next_key()
+# cookie1_name, cookie1, cookie2_name, cookie2, idx = key_manager.get_next_key()
