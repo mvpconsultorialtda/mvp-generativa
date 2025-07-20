@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field, root_validator
 from typing import Optional, Dict, Any
 
@@ -34,6 +35,24 @@ app = FastAPI(
     title="API Genérica de Geração de Conteúdo",
     description="Uma API versátil para gerar texto e imagens usando diferentes motores de IA. Suporta prompts diretos e templates reutilizáveis.",
     version="2.0.0"
+)
+
+# --- Configuração do CORS ---
+# Lista de origens que podem fazer requisições para a API.
+# Em desenvolvimento, é comum usar "*" para permitir todas, 
+# ou especificar a URL do seu frontend (ex: "http://localhost:5173").
+origins = [
+    "http://localhost:5173",  # Endereço padrão do Vite/React
+    "http://localhost:3000",  # Endereço comum para create-react-app
+    "http://127.0.0.1:5173",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],  # Permite todos os métodos (GET, POST, etc.)
+    allow_headers=["*"],  # Permite todos os cabeçalhos
 )
 
 # --- Endpoints da API ---
